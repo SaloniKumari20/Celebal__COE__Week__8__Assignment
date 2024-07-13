@@ -1,0 +1,81 @@
+Task 1: Load NYC taxi data 
+
+# Load data into a dataframe
+df = spark.read.csv("nyc_taxi_data.csv", header=True, inferSchema=True)
+
+
+Task 2: Extract data through dataframe
+
+
+# Display the dataframe
+df.show()
+
+
+Query 1: Add a "Revenue" column
+
+
+# Add a new column "Revenue" to the dataframe
+df = df.withColumn("Revenue", df["Fare_amount"] + df["Extra"] + df["MTA_tax"] + df["Improvement_surcharge"] + df["Tip_amount"] + df["Tolls_amount"] + df["Total_amount"])
+
+
+Query 2: Count total passengers by area
+
+
+# Group by "borough" and count the number of passengers
+passenger_count = df.groupBy("borough").count()
+passenger_count.show()
+
+
+Query 3: Realtime Average fare/total earning amount
+
+
+# Filter data for two specific vendors
+vendor_data = df.filter((df["vendor_id"] == "Vendor 1") | (df["vendor_id"] == "Vendor 2"))
+
+# Calculate average fare and total earning amount
+avg_fare = vendor_data.select(avg("Fare_amount")).first()[0]
+total_earning = vendor_data.select(sum("Total_amount")).first()[0]
+
+print("Average Fare:", avg_fare)
+print("Total Earning Amount:", total_earning)
+
+
+Query 4: Count payments made by each payment mode
+
+
+# Group by "payment_type" and count the number of payments
+payment_count = df.groupBy("payment_type").count()
+payment_count.show()
+
+
+Query 5: Highest two gaining vendors
+
+
+# Group by "vendor_id" and calculate the total revenue
+vendor_revenue = df.groupBy("vendor_id").sum("Revenue")
+
+# Sort and display the top two vendors
+vendor_revenue.sort("sum(Revenue)", ascending=False).show(2)
+
+
+Query 6: Most frequent passenger route
+
+
+# Group by "pickup_location" and "dropoff_location" and count the number of passengers
+route_count = df.groupBy("pickup_location", "dropoff_location").count()
+
+# Sort and display the most frequent route
+route_count.sort("count", ascending=False).show(1)
+
+
+Query 7: Top pickup locations
+
+
+# Group by "pickup_location" and count the number of passengers in the last 5/10 seconds
+pickup_count = df.where(df["timestamp"] >= (current_timestamp() - expr("interval 5 seconds"))).groupBy("pickup_location").count()
+
+# Sort and display the top pickup locations
+pickup_count.sort("count", ascending=False).show()
+
+
+

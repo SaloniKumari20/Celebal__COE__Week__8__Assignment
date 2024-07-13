@@ -1,0 +1,8 @@
+# Load any dataset into DBFS
+df = spark.read.csv("any_dataset.csv", header=True, inferSchema=True)
+
+# Flatten JSON fields
+flattened_df = df.selectExpr("inline(json_data)")
+
+# Write flattened data as an external Parquet table
+flattened_df.write.parquet("flattened_data.parquet")
